@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chlorwirkung und pH-Wert im Pool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9EDE9;
+  --card:#F5F8F3;
+  --ink:#0E2229;
+  --soft:#4A6169;
+  --line:rgba(14,34,41,.14);
+  --line-strong:rgba(14,34,41,.35);
+  --hocl:#0F7A5F;
+  --ocl:#93A6AD;
+  --time:#BE4A1E;
+  --redox:#2A4F8F;
+  --live:#B9CE1F;
+  --warn:#8C1F1F;
+  --r:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:880px;margin:0 auto;padding:40px 22px 90px}
+
+/* ---------- Kopf ---------- */
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--soft);display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line);min-width:24px}
+h1{
+  font-family:"Space Grotesk",system-ui,sans-serif;
+  font-weight:700;font-size:clamp(30px,5.6vw,50px);
+  line-height:1.03;letter-spacing:-.025em;margin:16px 0 0;
+}
+h1 em{font-style:normal;color:var(--hocl)}
+.lede{max-width:60ch;color:var(--soft);margin:16px 0 0;font-size:16px}
+.eqn-hero{
+  font-family:"IBM Plex Mono",monospace;font-size:14px;
+  margin-top:22px;padding:10px 14px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);display:inline-block;
+}
+.eqn-hero b{color:var(--hocl);font-weight:600}
+.eqn-hero span{color:var(--ocl)}
+
+/* ---------- Konsole ---------- */
+.console{
+  margin-top:34px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 22px 20px;
+}
+.dial-label{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--soft);
+}
+.dial-value{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:44px;letter-spacing:-.03em;color:var(--ink);line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.dial-value small{font-size:15px;font-weight:500;color:var(--soft);letter-spacing:0}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;
+  background:transparent;margin:18px 0 4px;cursor:grab;
+}
+input[type=range]:active{cursor:grabbing}
+input[type=range]::-webkit-slider-runnable-track{
+  height:16px;border-radius:2px;border:1px solid var(--line-strong);
+  background:linear-gradient(90deg,var(--hocl) 0%,var(--hocl) 12%,#5E9A83 34%,var(--ocl) 66%,#B9C6CB 100%);
+}
+input[type=range]::-moz-range-track{
+  height:16px;border-radius:2px;border:1px solid var(--line-strong);
+  background:linear-gradient(90deg,var(--hocl) 0%,var(--hocl) 12%,#5E9A83 34%,var(--ocl) 66%,#B9C6CB 100%);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:34px;margin-top:-10px;
+  background:var(--ink);border:none;border-radius:2px;
+  box-shadow:inset 0 0 0 2px var(--card), inset 0 0 0 5px var(--live);
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:34px;background:var(--ink);border:none;border-radius:2px;
+  box-shadow:inset 0 0 0 2px var(--card), inset 0 0 0 5px var(--live);
+}
+input[type=range]:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.ticks{
+  display:flex;justify-content:space-between;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--soft);
+}
+
+.readouts{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  margin-top:22px;background:var(--line);border:1px solid var(--line);
+}
+.ro{background:var(--card);padding:12px 12px 13px}
+.ro dt{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--soft);margin:0 0 5px;
+}
+.ro dd{
+  margin:0;font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;
+}
+.ro dd small{font-size:12px;font-weight:500;color:var(--soft);letter-spacing:0}
+.ro.a dd{color:var(--hocl)} .ro.b dd{color:var(--ink)}
+.ro.c dd{color:var(--time)} .ro.d dd{color:var(--redox)}
+
+.sub{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+  margin-top:22px;padding-top:20px;border-top:1px solid var(--line);
+}
+.sub label{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--soft);margin-bottom:6px;
+}
+.sub label b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.sub input[type=range]{margin:6px 0 0}
+.sub input[type=range]::-webkit-slider-runnable-track{height:8px;background:var(--line);border:1px solid var(--line-strong)}
+.sub input[type=range]::-moz-range-track{height:8px;background:var(--line);border:1px solid var(--line-strong)}
+.sub input[type=range]::-webkit-slider-thumb{height:20px;width:10px;margin-top:-7px;box-shadow:inset 0 0 0 2px var(--card),inset 0 0 0 4px var(--live)}
+.sub input[type=range]::-moz-range-thumb{height:20px;width:10px;box-shadow:inset 0 0 0 2px var(--card),inset 0 0 0 4px var(--live)}
+.seg{display:flex;border:1px solid var(--line-strong);border-radius:2px;overflow:hidden}
+.seg button{
+  flex:1;padding:6px 2px;border:0;background:transparent;cursor:pointer;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--soft);
+}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--card)}
+
+/* ---------- Charts ---------- */
+section{margin-top:52px}
+h2{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:21px;letter-spacing:-.015em;margin:0;
+}
+.kicker{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--soft);margin:0 0 6px;
+}
+.note{color:var(--soft);font-size:14px;margin:8px 0 0;max-width:66ch}
+figure{margin:18px 0 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 10px 8px}
+svg{display:block;width:100%;height:auto}
+.legend{
+  display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 8px 4px;
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--soft);
+}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px}
+
+/* ---------- Tabelle ---------- */
+table{width:100%;border-collapse:collapse;margin-top:18px;font-family:"IBM Plex Mono",monospace;font-size:13px}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{
+  font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);
+  font-weight:500;border-bottom:1px solid var(--line-strong);text-align:right;
+}
+th:first-child,td:first-child{text-align:left}
+tr.here td{background:rgba(185,206,31,.24);font-weight:600}
+
+/* ---------- Modell ---------- */
+.model{margin-top:18px;border-left:2px solid var(--line-strong);padding-left:18px}
+.model h3{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);font-weight:500;margin:20px 0 6px;
+}
+.model h3:first-child{margin-top:0}
+.f{font-family:"IBM Plex Mono",monospace;font-size:13.5px;background:var(--card);
+   border:1px solid var(--line);padding:9px 12px;border-radius:var(--r);overflow-x:auto}
+.model p{margin:7px 0 0;font-size:14px;color:var(--soft);max-width:66ch}
+.caveat{
+  margin-top:18px;border:1px solid var(--line-strong);border-left:3px solid var(--time);
+  background:var(--card);padding:14px 16px;border-radius:var(--r);
+}
+.caveat p{margin:0;font-size:14px}
+.caveat p+p{margin-top:9px}
+.caveat strong{font-weight:600}
+ul{padding-left:20px;margin:10px 0 0}
+li{margin:6px 0;max-width:64ch}
+li b{font-weight:600}
+footer{
+  margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--soft);
+}
+footer a{color:var(--soft)}
+@media (max-width:640px){
+  .readouts{grid-template-columns:1fr 1fr}
+  .sub{grid-template-columns:1fr;gap:14px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .ro dd,.dial-value{transition:color .2s}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Poolchemie / Desinfektionskinetik</p>
+  <h1>Der pH-Wert entscheidet, wie viel von deinem Chlor überhaupt <em>arbeitet</em>.</h1>
+  <p class="lede">Freies Chlor ist kein einheitlicher Stoff, sondern ein Gleichgewicht aus zwei Spezies mit stark unterschiedlicher Wirkung. Der Messwert am Teststreifen bleibt gleich, die Desinfektionsleistung nicht.</p>
+  <p class="eqn-hero"><b>HOCl</b> &nbsp;⇌&nbsp; H<sup>+</sup> &nbsp;+&nbsp; <span>OCl<sup>−</sup></span> &nbsp;&nbsp;·&nbsp;&nbsp; <b>Wirkform</b> vs. <span>träge Form</span></p>
+
+  <!-- Konsole -->
+  <div class="console">
+    <div class="dial-label">
+      <span>pH-Wert des Beckenwassers</span>
+      <span id="verdict"></span>
+    </div>
+    <div class="dial-value" id="phOut"></div>
+    <input id="ph" type="range" min="6.5" max="8" step="0.01" value="7.20" aria-label="pH-Wert">
+    <div class="ticks"><span>6,5</span><span>6,9</span><span>7,25</span><span>7,6</span><span>8,0</span></div>
+
+    <dl class="readouts">
+      <div class="ro a"><dt>Anteil HOCl</dt><dd id="oFrac"></dd></div>
+      <div class="ro b"><dt>Wirkung rel. pH 7,0</dt><dd id="oEff"></dd></div>
+      <div class="ro c"><dt>Kontaktzeit-Faktor</dt><dd id="oTime"></dd></div>
+      <div class="ro d"><dt>Redox (Modell)</dt><dd id="oOrp"></dd></div>
+    </dl>
+
+    <div class="sub">
+      <div>
+        <label for="temp">Wassertemperatur <b id="tOut"></b></label>
+        <input id="temp" type="range" min="5" max="35" step="1" value="26">
+      </div>
+      <div>
+        <label for="fc">Freies Chlor <b id="fOut"></b></label>
+        <input id="fc" type="range" min="0.2" max="3" step="0.05" value="1">
+      </div>
+      <div>
+        <label>Wirkverhältnis HOCl : OCl<sup>−</sup></label>
+        <div class="seg" id="kSeg">
+          <button data-k="20">20×</button>
+          <button data-k="80" aria-pressed="true">80×</button>
+          <button data-k="150">150×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 1 -->
+  <section>
+    <p class="kicker">Diagramm 1 · Säure-Base-Gleichgewicht</p>
+    <h2>Speziation: wie viel freies Chlor als HOCl vorliegt</h2>
+    <p class="note">Keine Exponentialkurve, sondern eine Titrationskurve (Henderson-Hasselbalch). Der Wendepunkt liegt beim pK<sub>a</sub> - dort sind beide Spezies genau 50:50. Der pK<sub>a</sub> ist temperaturabhängig und verschiebt sich bei warmem Wasser leicht nach unten.</p>
+    <figure>
+      <svg id="c1" viewBox="0 0 760 290" role="img" aria-label="Anteil HOCl und OCl minus über den pH-Wert"></svg>
+      <div class="legend">
+        <span><i style="background:var(--hocl)"></i>HOCl - Hypochlorige Säure, wirksam</span>
+        <span><i style="background:var(--ocl)"></i>OCl<sup>−</sup> - Hypochlorit, träge</span>
+        <span><i style="background:var(--line-strong)"></i>pK<sub>a</sub> bei aktueller Temperatur</span>
+      </div>
+    </figure>
+  </section>
+
+  <!-- Chart 2 -->
+  <section>
+    <p class="kicker">Diagramm 2 · Desinfektionsleistung</p>
+    <h2>Die Kurve, die im Betrieb wehtut</h2>
+    <p class="note">Wirkleistung normiert auf pH 7,0. Der Kontaktzeit-Faktor ist ihr Kehrwert: er beschreibt, um welchen Faktor länger es dauert, bis dieselbe Keimreduktion erreicht ist. Weil Abtötung einer Kinetik erster Ordnung folgt (<span style="font-family:'IBM Plex Mono',monospace">N/N₀ = e<sup>−k·c·t</sup></span>), steigt dieser Faktor überproportional an - das ist der exponentielle Teil, den du gesucht hast.</p>
+    <figure>
+      <svg id="c2" viewBox="0 0 760 290" role="img" aria-label="Relative Desinfektionsleistung und Kontaktzeitfaktor über den pH-Wert"></svg>
+      <div class="legend">
+        <span><i style="background:var(--hocl)"></i>Relative Wirkleistung, linke Achse</span>
+        <span><i style="background:var(--time)"></i>Kontaktzeit-Faktor, rechte Achse</span>
+      </div>
+    </figure>
+  </section>
+
+  <!-- Chart 3 -->
+  <section>
+    <p class="kicker">Diagramm 3 · Redoxspannung</p>
+    <h2>Warum die Redox-Sonde bei steigendem pH einbricht</h2>
+    <p class="note">Zwei Effekte addieren sich: die H<sup>+</sup>-Aktivität geht direkt in die Nernst-Gleichung ein, und gleichzeitig sinkt die HOCl-Konzentration. Bei konstantem freiem Chlor fällt die Redoxspannung deshalb um etwa 50 bis 105 mV pro pH-Einheit. Das Band unten zeigt genau diese Spanne.</p>
+    <figure>
+      <svg id="c3" viewBox="0 0 760 300" role="img" aria-label="Redoxspannung über den pH-Wert mit Normanforderungen"></svg>
+      <div class="legend">
+        <span><i style="background:var(--redox)"></i>Modellwert, Ag/AgCl</span>
+        <span><i style="background:rgba(42,79,143,.22);height:10px"></i>Unsicherheitsband n = 2 bis n = 1</span>
+        <span><i style="background:var(--warn)"></i>DIN 19643 Mindestwert, öffentliche Bäder</span>
+        <span><i style="background:var(--soft)"></i>EN 16713 Mindestwert, Privatpool</span>
+      </div>
+    </figure>
+    <div class="caveat">
+      <p><strong>Wichtig zur Einordnung:</strong> Die Redoxkurve ist kalibriert, nicht absolut berechnet. Rein thermodynamisch läge das HOCl/Cl<sup>−</sup>-Potenzial bei rund 1180 mV vs. SHE - real misst eine Platin-Sonde 650 bis 800 mV, weil sich an der Elektrode ein Mischpotenzial einstellt und die Zwei-Elektronen-Reaktion nicht reversibel abläuft.</p>
+      <p>Das Modell verwendet deshalb die <strong>physikalisch korrekte Steigung</strong> und verankert das Niveau an einem typischen Referenzpunkt (750 mV bei pH 7,2 und 1,0 mg/L freiem Chlor). Absolutwerte hängen zusätzlich von Chlorid, Leitfähigkeit, Belastung und Elektrodenalter ab - deine Sonde kann systematisch 30 bis 50 mV daneben liegen. Aussagekräftig ist die <strong>Änderung</strong>, nicht die Zahl.</p>
+    </div>
+  </section>
+
+  <!-- Tabelle -->
+  <section>
+    <p class="kicker">Kennwerte</p>
+    <h2>Tabelle bei aktuellen Einstellungen</h2>
+    <table id="tbl">
+      <thead><tr>
+        <th>pH</th><th>HOCl</th><th>Wirkleistung</th><th>Kontaktzeit</th><th>Redox ca.</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="note" id="tblCap"></p>
+  </section>
+
+  <!-- Praxis -->
+  <section>
+    <p class="kicker">Ableitung</p>
+    <h2>Was daraus folgt</h2>
+    <ul>
+      <li><b>7,0 bis 7,4 ist der Arbeitsbereich.</b> Darunter steigt die Wirkung zwar weiter, aber Metallkorrosion, Beckenmaterial und Hautverträglichkeit setzen die Grenze - nicht die Chemie.</li>
+      <li><b>Bei pH 8,0 brauchst du rund die dreifache Zeit</b> für dieselbe Keimreduktion wie bei pH 7,0, bei identischem Chlorwert. Wer stattdessen mehr Chlor nachdosiert, bekämpft ein pH-Problem mit Chemikalien.</li>
+      <li><b>pH zuerst korrigieren, dann Chlor beurteilen.</b> Ein niedriger Redoxwert bei ausreichendem freiem Chlor ist fast immer ein pH- oder Stabilisatorproblem.</li>
+      <li><b>Alkalinität (TAC) über 80 mg/L halten.</b> Ohne Puffer wandert der pH ständig, und die ganze Kurve wandert mit.</li>
+      <li><b>Warmes Wasser hilft doppelt und schadet einmal:</b> der pK<sub>a</sub> sinkt (mehr HOCl) und die Reaktionskinetik wird schneller - aber Chlorzehrung und Keimwachstum steigen ebenfalls.</li>
+    </ul>
+  </section>
+
+  <!-- Modell -->
+  <section>
+    <p class="kicker">Transparenz</p>
+    <h2>Modell, Annahmen, Grenzen</h2>
+    <div class="model">
+      <h3>1 · Dissoziation, temperaturabhängig</h3>
+      <div class="f">pK<sub>a</sub>(T) = 3000/T − 10,0686 + 0,0253·T&nbsp;&nbsp;&nbsp;(T in Kelvin)</div>
+      <p>Nach Morris (1966). Ergibt pK<sub>a</sub> = 7,54 bei 25 °C, 7,75 bei 0 °C, 7,46 bei 35 °C. Literaturwerte für 25 °C liegen bei 7,53 bis 7,54.</p>
+
+      <h3>2 · Anteil der Wirkform</h3>
+      <div class="f">f<sub>HOCl</sub> = 1 / (1 + 10<sup>(pH − pKa)</sup>)</div>
+      <p>Henderson-Hasselbalch. Aktivitätskoeffizienten sind bei Poolionenstärke vernachlässigt, der Fehler liegt unter einem Prozentpunkt.</p>
+
+      <h3>3 · Relative Wirkleistung</h3>
+      <div class="f">W(pH) = f + (1 − f)/k&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;W<sub>rel</sub> = W(pH) / W(7,0)</div>
+      <p>k ist das Wirkverhältnis HOCl zu OCl<sup>−</sup>. Die Literatur nennt je nach Keim und Prüfbedingung Werte von etwa 20 bis über 300 - der oft zitierte Richtwert für <em>E. coli</em> liegt bei rund 80. Deshalb ist k umschaltbar: die Form der Kurve ändert sich dadurch kaum, weil im pH-Fenster 6,5 bis 8,0 ohnehin die HOCl-Konzentration dominiert.</p>
+
+      <h3>4 · Redoxspannung</h3>
+      <div class="f">HOCl + H<sup>+</sup> + 2e<sup>−</sup> ⇌ Cl<sup>−</sup> + H₂O
+ΔE = s · (2,303·R·T/nF) · [ log₁₀(c<sub>HOCl</sub>/c<sub>ref</sub>) − (pH − pH<sub>ref</sub>) ]</div>
+      <p>Mit n = 2 (s = 1) ergibt sich die rein thermodynamische Steigung von rund 30 mV je Dekade. Reale Platinsonden verhalten sich wegen des Mischpotenzials steiler; s = 2 bildet den Ein-Elektronen-Grenzfall ab. Das dargestellte Band umfasst beides, die Linie zeigt den Mittelwert. Verankerung: 750 mV vs. Ag/AgCl bei pH 7,2 · 1,0 mg/L · 25 °C.</p>
+
+      <h3>5 · Was das Modell bewusst nicht abbildet</h3>
+      <p><strong>Cyanursäure.</strong> Der wichtigste Störfaktor im Freibad. Stabilisator bindet Chlor reversibel und senkt die freie HOCl-Konzentration drastisch; ab etwa 30 bis 40 mg/L fällt der Redoxwert deutlich, obwohl der DPD-Test unverändert freies Chlor anzeigt. Die Gleichgewichte umfassen mehrere Chlorisocyanurat-Spezies und lassen sich mit einer Kurve nicht seriös darstellen. Faustregel aus der Praxis: freies Chlor bei etwa 7,5 % des Cyanursäurewerts halten.</p>
+      <p>Ebenfalls nicht enthalten: gebundenes Chlor und Chloramine, Chlorzehrung durch Belastungsstoffe, UV-Abbau, Bromid- und Chloridgehalt sowie die Durchmischungszeit des Beckens. Die Kurven zeigen das <em>chemische Potenzial</em> unter Idealbedingungen, nicht die tatsächliche Keimreduktion in deinem Becken.</p>
+
+      <h3>6 · Normbezug</h3>
+      <p>DIN 19643-1 verlangt für öffentliche Süßwasserbecken mindestens 750 mV bei pH 6,5 bis 7,3 und mindestens 770 mV bei pH über 7,3 bis 7,5, gemessen gegen Ag/AgCl mit 3,5 mol/L KCl; akzeptierte Messunsicherheit ±40 mV. EN 16713 nennt für private Pools 650 mV als untere Grenze. Der zulässige pH-Bereich der Norm endet bei 7,5 - der Bereich darüber ist im Diagramm bewusst als normfremd markiert.</p>
+    </div>
+  </section>
+
+  <footer>
+    Modell nach Morris (1966) · Henderson-Hasselbalch · Nernst-Gleichung · DIN 19643-1:2012-11 · EN 16713 · UBA, Hygieneanforderungen an Bäder, Bundesgesundheitsblatt 2014;57:258-279<br>
+    Rechnerische Darstellung zur Orientierung. Kein Ersatz für Messung, Wartung und die geltenden Betreiberpflichten.
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ Modell ============ */
+var PH_REF = 7.2, FC_REF = 1.0, ORP_REF = 750;
+
+function pKa(tC){ var T = tC + 273.15; return 3000/T - 10.0686 + 0.0253*T; }
+function fH(pH, tC){ return 1/(1 + Math.pow(10, pH - pKa(tC))); }
+function eff(pH, tC, k){ var f = fH(pH, tC); return f + (1-f)/k; }
+function relEff(pH, tC, k){ return eff(pH, tC, k)/eff(7.0, tC, k); }
+function nernst(tC){ return 0.19842 * (tC + 273.15); }      // mV / Dekade, n = 1
+function orp(pH, tC, fc, s){
+  var slope = nernst(tC)/2;                                  // n = 2 Basis
+  var term  = Math.log10((fc*fH(pH,tC)) / (FC_REF*fH(PH_REF,tC))) - (pH - PH_REF);
+  return ORP_REF + s*slope*term;
+}
+function dinMin(pH){ return pH <= 7.3 ? 750 : (pH <= 7.5 ? 770 : null); }
+
+/* ============ Formatierung ============ */
+function n(x,d){ if(d===undefined) d=1; return x.toFixed(d).replace(".",","); }
+
+/* ============ SVG-Helfer ============ */
+var NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, text){
+  var e = document.createElementNS(NS, tag);
+  for(var a in attrs) e.setAttribute(a, attrs[a]);
+  if(text !== undefined) e.textContent = text;
+  return e;
+}
+var MONO = "'IBM Plex Mono', monospace";
+var PH0 = 6.5, PH1 = 8.0;
+
+function frame(svg, W, H, M){
+  svg.textContent = "";
+  return {
+    svg: svg, W: W, H: H, M: M,
+    x: function(pH){ return M.l + (pH - PH0)/(PH1 - PH0) * (W - M.l - M.r); },
+    yl: function(v, a, b){ return H - M.b - (v - a)/(b - a) * (H - M.t - M.b); }
+  };
+}
+function gridX(F, y0, y1){
+  for(var p = 6.5; p <= 8.001; p += 0.25){
+    var x = F.x(p), major = Math.abs(p*4 % 2) < 0.01;
+    F.svg.appendChild(el("line",{x1:x,x2:x,y1:F.M.t,y2:F.H-F.M.b,
+      stroke:"rgba(14,34,41,"+(major?0.16:0.07)+")","stroke-width":1}));
+    if(major) F.svg.appendChild(el("text",{x:x,y:F.H-F.M.b+17,"text-anchor":"middle",
+      "font-family":MONO,"font-size":11,fill:"#4A6169"}, n(p,1)));
+  }
+  F.svg.appendChild(el("text",{x:F.W-F.M.r,y:F.H-4,"text-anchor":"end",
+    "font-family":MONO,"font-size":10.5,fill:"#4A6169","letter-spacing":"0.1em"},"PH-WERT"));
+}
+function gridY(F, a, b, step, fmt, side, color){
+  for(var v = a; v <= b + 1e-6; v += step){
+    var y = F.yl(v, a, b);
+    F.svg.appendChild(el("line",{x1:F.M.l,x2:F.W-F.M.r,y1:y,y2:y,
+      stroke:"rgba(14,34,41,0.09)","stroke-width":1}));
+    F.svg.appendChild(el("text",{
+      x: side === "r" ? F.W-F.M.r+8 : F.M.l-8, y: y+4,
+      "text-anchor": side === "r" ? "start" : "end",
+      "font-family":MONO,"font-size":11, fill: color || "#4A6169"}, fmt(v)));
+  }
+}
+function path(F, fn, a, b){
+  var d = "", first = true;
+  for(var p = PH0; p <= PH1 + 1e-9; p += 0.01){
+    var v = fn(Math.min(p, PH1));
+    d += (first ? "M" : "L") + F.x(p).toFixed(2) + " " + F.yl(v, a, b).toFixed(2);
+    first = false;
+  }
+  return d;
+}
+function playhead(F, pH, label){
+  var x = F.x(pH);
+  F.svg.appendChild(el("line",{x1:x,x2:x,y1:F.M.t-4,y2:F.H-F.M.b,
+    stroke:"#0E2229","stroke-width":1.5,"stroke-dasharray":"1 3"}));
+  var w = label.length*6.6 + 12;
+  F.svg.appendChild(el("rect",{x:Math.min(Math.max(x-w/2,2),F.W-w-2),y:F.M.t-20,
+    width:w,height:17,fill:"#0E2229",rx:2}));
+  F.svg.appendChild(el("text",{x:Math.min(Math.max(x,2+w/2),F.W-2-w/2),y:F.M.t-7.5,
+    "text-anchor":"middle","font-family":MONO,"font-size":11,fill:"#F5F8F3"}, label));
+}
+function dot(F, x, y, color){
+  F.svg.appendChild(el("circle",{cx:x,cy:y,r:5,fill:color,stroke:"#F5F8F3","stroke-width":2}));
+}
+
+/* ============ Diagramm 1: Speziation ============ */
+function drawSpec(S){
+  var F = frame(document.getElementById("c1"), 760, 290, {l:48,r:48,t:26,b:34});
+  var f = function(p){ return fH(p, S.T)*100; };
+  gridY(F, 0, 100, 25, function(v){ return v + "%"; });
+  gridX(F);
+
+  // Optimalfenster
+  F.svg.appendChild(el("rect",{x:F.x(7.0),y:F.M.t,width:F.x(7.4)-F.x(7.0),
+    height:F.H-F.M.t-F.M.b,fill:"rgba(185,206,31,0.20)"}));
+  F.svg.appendChild(el("text",{x:(F.x(7.0)+F.x(7.4))/2,y:F.M.t+14,"text-anchor":"middle",
+    "font-family":MONO,"font-size":10,fill:"#4A6169","letter-spacing":"0.08em"},"ZIELBEREICH"));
+
+  var d = path(F, f, 0, 100);
+  F.svg.appendChild(el("path",{d:d+"L"+F.x(PH1)+" "+F.yl(0,0,100)+"L"+F.x(PH0)+" "+F.yl(0,0,100)+"Z",
+    fill:"rgba(15,122,95,0.16)"}));
+  F.svg.appendChild(el("path",{d:d+"L"+F.x(PH1)+" "+F.yl(100,0,100)+"L"+F.x(PH0)+" "+F.yl(100,0,100)+"Z",
+    fill:"rgba(147,166,173,0.20)"}));
+  F.svg.appendChild(el("path",{d:d,fill:"none",stroke:"#0F7A5F","stroke-width":2.5}));
+
+  // pKa-Marker
+  var pk = pKa(S.T);
+  if(pk >= PH0 && pk <= PH1){
+    var xk = F.x(pk);
+    F.svg.appendChild(el("line",{x1:xk,x2:xk,y1:F.yl(50,0,100),y2:F.H-F.M.b,
+      stroke:"rgba(14,34,41,0.4)","stroke-width":1,"stroke-dasharray":"4 3"}));
+    F.svg.appendChild(el("text",{x:xk+6,y:F.yl(50,0,100)-7,"font-family":MONO,
+      "font-size":10.5,fill:"#4A6169"},"pKa "+n(pk,2)+" · 50:50"));
+  }
+  // Beschriftung Flächen
+  F.svg.appendChild(el("text",{x:F.x(6.62),y:F.yl(42,0,100),"font-family":MONO,
+    "font-size":12,fill:"#0F7A5F","font-weight":600},"HOCl"));
+  F.svg.appendChild(el("text",{x:F.x(7.72),y:F.yl(84,0,100),"font-family":MONO,
+    "font-size":12,fill:"#647A82","font-weight":600},"OCl−"));
+
+  playhead(F, S.pH, "pH "+n(S.pH,2)+" → "+n(f(S.pH),1)+" %");
+  dot(F, F.x(S.pH), F.yl(f(S.pH),0,100), "#0F7A5F");
+}
+
+/* ============ Diagramm 2: Wirkung ============ */
+function drawEff(S){
+  var F = frame(document.getElementById("c2"), 760, 290, {l:52,r:56,t:26,b:34});
+  var W = function(p){ return relEff(p, S.T, S.k)*100; };
+  var tmax = 1/relEff(PH1, S.T, S.k);
+  var TMAX = Math.ceil(tmax*1.12*2)/2;
+  var T = function(p){ return 1/relEff(p, S.T, S.k); };
+
+  gridY(F, 0, 130, 26, function(v){ return Math.round(v)+"%"; });
+  gridY(F, 0, TMAX, TMAX/5, function(v){ return n(v,1)+"×"; }, "r", "#BE4A1E");
+  gridX(F);
+
+  F.svg.appendChild(el("rect",{x:F.x(7.0),y:F.M.t,width:F.x(7.4)-F.x(7.0),
+    height:F.H-F.M.t-F.M.b,fill:"rgba(185,206,31,0.20)"}));
+
+  // 100-%-Referenz
+  var y100 = F.yl(100,0,130);
+  F.svg.appendChild(el("line",{x1:F.M.l,x2:F.W-F.M.r,y1:y100,y2:y100,
+    stroke:"rgba(14,34,41,0.32)","stroke-width":1,"stroke-dasharray":"5 4"}));
+  F.svg.appendChild(el("text",{x:F.M.l+5,y:y100-6,"font-family":MONO,"font-size":10,
+    fill:"#4A6169"},"Referenz pH 7,0"));
+
+  var dW = path(F, W, 0, 130);
+  F.svg.appendChild(el("path",{d:dW+"L"+F.x(PH1)+" "+F.yl(0,0,130)+"L"+F.x(PH0)+" "+F.yl(0,0,130)+"Z",
+    fill:"rgba(15,122,95,0.15)"}));
+  F.svg.appendChild(el("path",{d:dW,fill:"none",stroke:"#0F7A5F","stroke-width":2.5}));
+  F.svg.appendChild(el("path",{d:path(F, T, 0, TMAX),fill:"none",stroke:"#BE4A1E",
+    "stroke-width":2.5,"stroke-dasharray":"7 4"}));
+
+  dot(F, F.x(S.pH), F.yl(W(S.pH),0,130), "#0F7A5F");
+  dot(F, F.x(S.pH), F.yl(T(S.pH),0,TMAX), "#BE4A1E");
+  playhead(F, S.pH, n(W(S.pH),0)+" % · "+n(T(S.pH),2)+"× Zeit");
+}
+
+/* ============ Diagramm 3: Redox ============ */
+function drawOrp(S){
+  var F = frame(document.getElementById("c3"), 760, 300, {l:56,r:52,t:26,b:34});
+  var lo = function(p){ return orp(p,S.T,S.fc,1); };
+  var hi = function(p){ return orp(p,S.T,S.fc,2); };
+  var mid= function(p){ return orp(p,S.T,S.fc,1.5); };
+
+  var vals = [lo(PH0),lo(PH1),hi(PH0),hi(PH1),640,790];
+  var a = Math.floor(Math.min.apply(null,vals)/25)*25 - 25;
+  var b = Math.ceil(Math.max.apply(null,vals)/25)*25 + 25;
+
+  gridY(F, a, b, Math.max(25, Math.round((b-a)/6/25)*25), function(v){ return Math.round(v); });
+  gridX(F);
+
+  // Normfremder pH-Bereich
+  F.svg.appendChild(el("rect",{x:F.x(7.5),y:F.M.t,width:F.x(PH1)-F.x(7.5),
+    height:F.H-F.M.t-F.M.b,fill:"rgba(140,31,31,0.07)"}));
+  F.svg.appendChild(el("text",{x:(F.x(7.5)+F.x(PH1))/2,y:F.H-F.M.b-8,"text-anchor":"middle",
+    "font-family":MONO,"font-size":10,fill:"#8C1F1F","letter-spacing":"0.06em"},"AUSSERHALB DIN 19643"));
+
+  // Band
+  var up = path(F, hi, a, b);
+  var dn = "";
+  for(var p = PH1; p >= PH0 - 1e-9; p -= 0.01)
+    dn += "L" + F.x(Math.max(p,PH0)).toFixed(2) + " " + F.yl(lo(Math.max(p,PH0)),a,b).toFixed(2);
+  F.svg.appendChild(el("path",{d:up+dn+"Z",fill:"rgba(42,79,143,0.18)"}));
+
+  // Normlinien
+  var y650 = F.yl(650,a,b);
+  if(650 > a && 650 < b){
+    F.svg.appendChild(el("line",{x1:F.M.l,x2:F.W-F.M.r,y1:y650,y2:y650,
+      stroke:"#4A6169","stroke-width":1.5,"stroke-dasharray":"2 4"}));
+    F.svg.appendChild(el("text",{x:F.W-F.M.r-4,y:y650-6,"text-anchor":"end",
+      "font-family":MONO,"font-size":10,fill:"#4A6169"},"EN 16713 · 650 mV"));
+  }
+  var seg = [[6.5,7.3,750],[7.3,7.5,770]];
+  for(var i=0;i<seg.length;i++){
+    var yv = F.yl(seg[i][2],a,b);
+    if(seg[i][2] > a && seg[i][2] < b)
+      F.svg.appendChild(el("line",{x1:F.x(seg[i][0]),x2:F.x(seg[i][1]),y1:yv,y2:yv,
+        stroke:"#8C1F1F","stroke-width":2}));
+  }
+  if(750 > a && 750 < b)
+    F.svg.appendChild(el("text",{x:F.x(6.55),y:F.yl(750,a,b)-6,"font-family":MONO,
+      "font-size":10,fill:"#8C1F1F"},"DIN 19643 · 750 / 770 mV"));
+
+  F.svg.appendChild(el("path",{d:path(F, mid, a, b),fill:"none",stroke:"#2A4F8F","stroke-width":2.5}));
+  F.svg.appendChild(el("text",{x:F.M.l-8,y:F.M.t+2,"text-anchor":"end","font-family":MONO,
+    "font-size":10,fill:"#4A6169"},"mV"));
+
+  dot(F, F.x(S.pH), F.yl(mid(S.pH),a,b), "#2A4F8F");
+  playhead(F, S.pH, Math.round(mid(S.pH))+" mV ±"+Math.round(Math.abs(hi(S.pH)-lo(S.pH))/2));
+}
+
+/* ============ Tabelle ============ */
+function drawTable(S){
+  var rows = [6.5,6.8,7.0,7.2,7.4,7.6,7.8,8.0];
+  var body = document.querySelector("#tbl tbody");
+  body.textContent = "";
+  var near = rows.reduce(function(m,v){ return Math.abs(v-S.pH) < Math.abs(m-S.pH) ? v : m; }, rows[0]);
+  rows.forEach(function(p){
+    var tr = document.createElement("tr");
+    if(p === near && Math.abs(p - S.pH) < 0.11) tr.className = "here";
+    var re = relEff(p, S.T, S.k);
+    var cells = [n(p,1), n(fH(p,S.T)*100,1)+" %", n(re*100,0)+" %", n(1/re,2)+"×",
+                 Math.round(orp(p,S.T,S.fc,1.5))+" mV"];
+    cells.forEach(function(c){ var td = document.createElement("td"); td.textContent = c; tr.appendChild(td); });
+    body.appendChild(tr);
+  });
+  document.getElementById("tblCap").textContent =
+    "Berechnet für " + n(S.T,0) + " °C, " + n(S.fc,2) + " mg/L freies Chlor, Wirkverhältnis " +
+    S.k + "×. pKa bei dieser Temperatur: " + n(pKa(S.T),2) +
+    ". Redoxwerte sind Modellmittelwerte gegen Ag/AgCl, verankert bei 750 mV / pH 7,2 / 1,0 mg/L.";
+}
+
+/* ============ Zustand & Bindung ============ */
+var S = {pH:7.20, T:26, fc:1.0, k:80};
+
+function render(){
+  document.getElementById("phOut").innerHTML = n(S.pH,2) + " <small>pH</small>";
+  document.getElementById("tOut").textContent = n(S.T,0) + " °C";
+  document.getElementById("fOut").textContent = n(S.fc,2) + " mg/L";
+
+  var f = fH(S.pH,S.T)*100, re = relEff(S.pH,S.T,S.k), o = orp(S.pH,S.T,S.fc,1.5);
+  document.getElementById("oFrac").innerHTML = n(f,1) + " <small>%</small>";
+  document.getElementById("oEff").innerHTML  = n(re*100,0) + " <small>%</small>";
+  document.getElementById("oTime").innerHTML = n(1/re,2) + " <small>×</small>";
+  document.getElementById("oOrp").innerHTML  = Math.round(o) + " <small>mV</small>";
+
+  var v = document.getElementById("verdict"), t, c;
+  if(S.pH < 6.9){ t = "sehr wirksam, materialkritisch"; c = "#BE4A1E"; }
+  else if(S.pH <= 7.4){ t = "Zielbereich"; c = "#0F7A5F"; }
+  else if(S.pH <= 7.6){ t = "grenzwertig"; c = "#BE4A1E"; }
+  else { t = "pH korrigieren"; c = "#8C1F1F"; }
+  v.textContent = t; v.style.color = c;
+
+  drawSpec(S); drawEff(S); drawOrp(S); drawTable(S);
+}
+
+document.getElementById("ph").addEventListener("input", function(e){ S.pH = +e.target.value; render(); });
+document.getElementById("temp").addEventListener("input", function(e){ S.T = +e.target.value; render(); });
+document.getElementById("fc").addEventListener("input", function(e){ S.fc = +e.target.value; render(); });
+document.getElementById("kSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(!b) return;
+  S.k = +b.dataset.k;
+  Array.prototype.forEach.call(this.querySelectorAll("button"), function(x){
+    x.setAttribute("aria-pressed", x === b ? "true" : "false");
+  });
+  render();
+});
+
+render();
+})();
+</script>
+</body>
+</html>
